@@ -3,7 +3,7 @@ import requests
 import json
 import csv
 from dotenv import load_dotenv
-import pandas
+import statistics as stat
 import os
 import sys
 from datetime import datetime
@@ -75,9 +75,8 @@ refresh_date = parsed_response['Meta Data']['3. Last Refreshed']
 close_prices = [] #> creates list of the last 100 closing prices
 for item in time_series:
     close = float(time_series[item]['4. close'])
-    close = to_usd(close)
     close_prices.append(close)
-latest_close = close_prices[0]
+latest_close = to_usd(close_prices[0])
 
 high_prices = [] #> creates list of the last 100 daily high prices 
 for item in time_series:
@@ -93,6 +92,41 @@ for item in time_series:
 low_prices.sort()
 recent_low = to_usd(low_prices[0])
 
+## Recommendation:
+"""
+Dictionary of recommendations to include 'recommendation' and reason 'keys'.
+The recommendations will be based on the z-score of the current price relative
+to the normalized 100-day closing prices.
+"""
+recommendations = {
+   "sb": {"rec": "Strong Buy!", "reason": "Current price is over 2 standard deviations less than the average closing price for the past 100 days."},
+    "b": {"rec": "Buy!", "reason": "Current price is within 1 to 2 standard deviations less than the average closing price for the past 100 days."},
+    "h": {"rec": "Hold!", "reason": "Current price is within 1 standard deviation from the average closing price for the past 100 days."},
+    "s": {"rec": "Sell!", "reason": "Current price is within 1 to 2 standard deviations greater than the average closing price for the past 100 days."},
+    "ss": {"rec": "Strong Sell!", "reason": "Current price is over 2 standard deviations greter than the average closing price for the past 100 days."}
+}
+
+current_price = close_prices[0]
+
+avg_close = stat.mean(close_prices)
+stdev_close = stat.pstdev(close_prices)
+
+z_score = round((current_price - avg_close) / stdev_close, 2)
+
+if z_score > 2: 
+    advice = recommendations['ss']
+elif z_score >= 1:
+    advice = recommendations['s']
+elif z_score >= -1:
+    advice = recommendations['h']
+elif z_score >= -2:
+    advice = recommendations['b']
+elif z_score < -2: 
+    advice = recommendations['sb']
+
+rec = advice['rec']
+reason = advice['reason']
+
 ## Starter code:
 print("-------------------------")
 print("SELECTED SYMBOL: " + quote)
@@ -105,8 +139,8 @@ print("LATEST CLOSE: " + latest_close)
 print("RECENT HIGH: " + recent_high)
 print("RECENT LOW: " + recent_low)
 print("-------------------------")
-print("RECOMMENDATION: BUY!")
-print("RECOMMENDATION REASON: TODO")
+print("RECOMMENDATION: " + rec)
+print("RECOMMENDATION REASON: " + reason)
 print("-------------------------")
 print("HAPPY INVESTING!")
 print("-------------------------")
