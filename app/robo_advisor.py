@@ -24,20 +24,27 @@ def to_usd(my_price):
 
 load_dotenv()
 key = os.environ.get("ALPHAVANTAGE_API_KEY")
-# COMPLETE
 
 ## Functionality requirements:
 # Information input / validation
-"""Create a while loop that sends user input to
+"""
+Create a while loop that sends user input to
 the API. If the symbol is invalid, an error should
 be returned by the API. Thus if error status = true,
 program will return an error message. Otherwise it 
 will break out of the WHILE loop.
 
-Use: TIME_SERIES_DAILY function"""
+Use: TIME_SERIES_DAILY function
+"""
 while True:
 
     quote = input("Please type in the stock symbol for which you are interested: ").upper()
+    
+    # Check validitity of user inputted stock symbol:
+    if type(quote) != str or len(quote) > 5:
+        print("Hmmm, something is wrong with your stock symbol. Please ensure your input is accurate and contains only letters.")
+        continue
+
     request_url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + quote + "&apikey=" + key
 
     response = requests.get(request_url)
@@ -45,11 +52,19 @@ while True:
     
     validation = list(parsed_response.keys())[0]
 
+    # Check for error message returned by API:
     if validation != "Error Message":
         break
 
     else:
-        print("The stock symbol you submitted is invalid. Please try again.")
+        again = input("The stock symbol you submitted is invalid. Would you like to try again? (y/n): ").upper()
+        if again == 'Y':
+            continue
+        elif again == 'N':
+            print("Leaving program...")
+            exit()
+        else:
+            print("Invalid input. Please try again.")
 time_series = parsed_response['Time Series (Daily)']
 
 # Information output
@@ -63,7 +78,6 @@ with open('data/'+quote+'.csv', 'w', newline='') as f:
         row.update(v)
         w.writerow(row)
         #CREDIT: https://stackoverflow.com/questions/29400631/python-writing-nested-dictionary-to-csv
-# COMPLETE
 
 ## Calculation requirements:
 
