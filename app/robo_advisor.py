@@ -1,9 +1,11 @@
 # app/robo_advisor.py
 import requests
 import json
+import csv
 from dotenv import load_dotenv
 import pandas
 import os
+import sys
 
 ## Security requirements:
 # Create environmental variable for API Key
@@ -37,8 +39,20 @@ while True:
 
     else:
         print("The stock symbol you submitted is invalid. Please try again.")
-breakpoint()
+time_series = parsed_response['Time Series (Daily)']
+# breakpoint()
 # Information output
+csv_columns = ['Date', '1. open', '2. high', '3. low', '4. close', '5. volume']
+# breakpoint()
+
+with open('data/test.csv', 'w', newline='') as f:
+    w = csv.DictWriter(f, csv_columns)
+    w.writeheader()
+    for k, v in time_series.items():
+        row = {'Date': k}
+        row.update(v)
+        w.writerow(row)
+        #CREDIT: https://stackoverflow.com/questions/29400631/python-writing-nested-dictionary-to-csv
 
 ## Calculation requirements:
 # List close, high and low prices
