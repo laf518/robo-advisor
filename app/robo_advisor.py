@@ -6,13 +6,24 @@ from dotenv import load_dotenv
 import pandas
 import os
 import sys
+from datetime import datetime
+
+
+def to_usd(my_price):
+    """
+    Converts a numeric value to usd-formatted string, for printing and display purposes.
+    Param: my_price (int or float) like 4000.444444
+    Example: to_usd(4000.444444)
+    Returns: $4,000.44
+    """
+    return f"${my_price:,.2f}" #> $12,000.71
+# CREDIT: https://github.com/prof-rossetti/intro-to-python/blob/master/notes/python/datatypes/numbers.md#formatting-as-currency
 
 ## Security requirements:
 # Create environmental variable for API Key
 
 load_dotenv()
 key = os.environ.get("ALPHAVANTAGE_API_KEY")
-# breakpoint()
 # COMPLETE
 
 ## Functionality requirements:
@@ -40,12 +51,11 @@ while True:
     else:
         print("The stock symbol you submitted is invalid. Please try again.")
 time_series = parsed_response['Time Series (Daily)']
-# breakpoint()
+
 # Information output
 csv_columns = ['Date', '1. open', '2. high', '3. low', '4. close', '5. volume']
-# breakpoint()
 
-with open('data/test.csv', 'w', newline='') as f:
+with open('data/'+quote+'.csv', 'w', newline='') as f:
     w = csv.DictWriter(f, csv_columns)
     w.writeheader()
     for k, v in time_series.items():
@@ -53,21 +63,47 @@ with open('data/test.csv', 'w', newline='') as f:
         row.update(v)
         w.writerow(row)
         #CREDIT: https://stackoverflow.com/questions/29400631/python-writing-nested-dictionary-to-csv
+# COMPLETE
 
 ## Calculation requirements:
+
 # List close, high and low prices
+now = datetime.now()
+date_str = now.strftime("%m/%d/%Y %H:%M:%S")
+refresh_date = parsed_response['Meta Data']['3. Last Refreshed']
+
+close_prices = [] #> creates list of the last 100 closing prices
+for item in time_series:
+    close = float(time_series[item]['4. close'])
+    close = to_usd(close)
+    close_prices.append(close)
+latest_close = close_prices[0]
+
+high_prices = [] #> creates list of the last 100 daily high prices 
+for item in time_series:
+    high = float(time_series[item]['2. high'])
+    high_prices.append(high)
+high_prices.sort(reverse = True)
+recent_high = to_usd(high_prices[0])
+
+low_prices = [] #> creates list of the last 100 daily low prices
+for item in time_series:
+    low = float(time_series[item]['3. low'])
+    low_prices.append(low)
+low_prices.sort()
+recent_low = to_usd(low_prices[0])
 
 ## Starter code:
 print("-------------------------")
-print("SELECTED SYMBOL: XYZ")
+print("SELECTED SYMBOL: " + quote)
 print("-------------------------")
 print("REQUESTING STOCK MARKET DATA...")
-print("REQUEST AT: 2018-02-20 02:00pm")
+print("REQUEST AT: " + date_str)
 print("-------------------------")
-print("LATEST DAY: 2018-02-20")
-print("LATEST CLOSE: $100,000.00")
-print("RECENT HIGH: $101,000.00")
-print("RECENT LOW: $99,000.00")
+print("LATEST DAY: " + refresh_date)
+print("LATEST CLOSE: " + latest_close)
+print("RECENT HIGH: " + recent_high)
+print("RECENT LOW: " + recent_low)
 print("-------------------------")
 print("RECOMMENDATION: BUY!")
 print("RECOMMENDATION REASON: TODO")
