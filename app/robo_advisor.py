@@ -1,11 +1,15 @@
 # app/robo_advisor.py
 import requests
-import python-dotenv
+from dotenv import load_dotenv
 import pandas
+import os
 
 ## Security requirements:
 # Create environmental variable for API Key
 
+load_dotenv()
+key = os.environ.get("ALPHAVANTAGE_API_KEY")
+breakpoint()
 
 ## Functionality requirements:
 # Information input / validation
